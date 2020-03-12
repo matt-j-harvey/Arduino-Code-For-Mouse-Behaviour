@@ -1,0 +1,50 @@
+//Recording State 1 - Not Recording, Not Sent Trigger
+//Recording State 2 - Not Recording, Sending Trigger
+//Recording State 3 - Recording, Trigger Sent
+//Recording State 4 - Finished Recording, no more trigger will be sent 
+
+int recording_state = 1;
+int camera_pin = 8;
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(camera_pin, OUTPUT);
+  digitalWrite(camera_pin, LOW);
+}
+
+void loop() {
+
+  //Checlk What Matlab Wants Us To Do
+  if (Serial.available() > 0) {recording_state = Serial.parseInt();}
+
+  //We Are Waiting For A Trigger
+  if (recording_state == 1){
+        digitalWrite(camera_pin, LOW);
+      }
+
+  //We've Detected A Trigger!
+  if (recording_state == 2){
+      delay(500);
+      recording_state = 3;
+      }
+
+  //We're Recording!
+  if (recording_state == 3){
+      delay(25);
+      digitalWrite(camera_pin, HIGH);
+      delay(3);
+      digitalWrite(camera_pin, LOW);
+      if (Serial.available() > 0) {recording_state = Serial.parseInt();}
+      }
+
+  //Weve Finished Recording - Send Last Trigger and Give Matlab time to Collect Outstanding Frames
+   if (recording_state == 4){
+      Serial.print("Thats the last frame captin!");
+      Serial.print("\n");
+      digitalWrite(camera_pin, HIGH);
+      delay(1000);
+      digitalWrite(camera_pin, LOW);
+      recording_state = 1;
+      }
+ 
+}
